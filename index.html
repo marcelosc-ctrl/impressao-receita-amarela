@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impressor de Receita Amarela (A)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React e ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel para rodar JSX direto no navegador -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @media print {
+      @page {
+        size: 190mm 97mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 190mm;
+        height: 97mm;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .guia-fundo {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const initialCoords = {
+      dia: { x: 16, y: 54 },
+      mes: { x: 30, y: 54 },
+      ano: { x: 54, y: 54 },
+      paciente: { x: 75, y: 54 },
+      endereco: { x: 80, y: 64 },
+      medicamento: { x: 140, y: 29 },
+      quantidade: { x: 130, y: 54 },
+      posologia: { x: 130, y: 74 },
+    };
+
+    function App() {
+      const [dados, setDados] = useState({
+        dia: new Date().getDate().toString().padStart(2, '0'),
+        mes: (new Date().getMonth() + 1).toString().padStart(2, '0'),
+        ano: new Date().getFullYear().toString().slice(-2),
+        paciente: '',
+        endereco: '',
+        medicamento: '',
+        quantidade: '',
+        posologia: ''
+      });
+
+      const [coords, setCoords] = useState(initialCoords);
+      const [mostrarGuia, setMostrarGuia] = useState(true);
+
+      const handleChange = (campo, valor) => {
+        setDados(prev => ({ ...prev, [campo]: valor }));
+      };
+
+      const handleCoordChange = (campo, eixo, valor) => {
+        setCoords(prev => ({
+          ...prev,
+          [campo]: { ...prev[campo], [eixo]: Number(valor) }
+        }));
+      };
+
+      return (
+        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+          {/* Cabeçalho */}
+          <div className="no-print bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Impressão de Receita Notificação A</h1>
+              <p className="text-sm text-slate-500">Gabarito calibrado (190mm × 97mm) com posições milimétricas</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={mostrarGuia} 
+                  onChange={(e) => setMostrarGuia(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                Simular Fundo Amarelo
+              </label>
+              <button 
+                onClick={() => window.print()}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+              >
+                Imprimir na Folha
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Formulário e Ajuste */}
+            <div className="no-print w-full lg:w-5/12 space-y-4">
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 className="text-base font-semibold mb-4 text-slate-800">Preenchimento dos Dados</h2>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Data da Receita</label>
+                    <div className="grid grid-cols-3 gap-2 mt-1">
+                      <input 
+                        type="text" 
+                        placeholder="Dia (dd)" 
+                        value={dados.dia} 
+                        onChange={(e) => handleChange('dia', e.target.value)} 
+                        className="border border-slate-300 rounded p-2 text-sm"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Mês (mm)" 
+                        value={dados.mes} 
+                        onChange={(e) => handleChange('mes', e.target.value)} 
+                        className="border border-slate-300 rounded p-2 text-sm"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Ano (aa)" 
+                        value={dados.ano} 
+                        onChange={(e) => handleChange('ano', e.target.value)} 
+                        className="border border-slate-300 rounded p-2 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Nome do Paciente</label>
+                    <input 
+                      type="text" 
+                      value={dados.paciente} 
+                      onChange={(e) => handleChange('paciente', e.target.value)} 
+                      placeholder="Ex: Nome Completo do Paciente"
+                      className="w-full mt-1 border border-slate-300 rounded p-2 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Endereço Completo</label>
+                    <input 
+                      type="text" 
+                      value={dados.endereco} 
+                      onChange={(e) => handleChange('endereco', e.target.value)} 
+                      placeholder="Ex: Rua, Número, Bairro, Cidade - UF"
+                      className="w-full mt-1 border border-slate-300 rounded p-2 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Nome do Medicamento</label>
+                    <input 
+                      type="text" 
+                      value={dados.medicamento} 
+                      onChange={(e) => handleChange('medicamento', e.target.value)} 
+                      placeholder="Ex: Metilfenidato 10mg"
+                      className="w-full mt-1 border border-slate-300 rounded p-2 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Quantidade e Apresentação</label>
+                    <input 
+                      type="text" 
+                      value={dados.quantidade} 
+                      onChange={(e) => handleChange('quantidade', e.target.value)} 
+                      placeholder="Ex: 30 comprimidos (1 cx)"
+                      className="w-full mt-1 border border-slate-300 rounded p-2 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 uppercase">Forma Farm., Concentração e Posologia</label>
+                    <textarea 
+                      rows="2"
+                      value={dados.posologia} 
+                      onChange={(e) => handleChange('posologia', e.target.value)} 
+                      placeholder="Ex: Tomar 1 comprimido pela manhã após o café."
+                      className="w-full mt-1 border border-slate-300 rounded p-2 text-sm resize-none"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ajuste de Posições */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <details className="group">
+                  <summary className="font-semibold text-sm cursor-pointer list-none flex justify-between items-center text-slate-700">
+                    <span>Ajuste Fino de Calibragem (mm)</span>
+                    <span className="text-xs text-blue-600 group-open:rotate-180 transition-transform">▼</span>
+                  </summary>
+                  <div className="mt-4 space-y-3 pt-3 border-t border-slate-100 text-xs">
+                    {Object.keys(coords).map((campo) => (
+                      <div key={campo} className="flex items-center justify-between gap-2">
+                        <span className="capitalize font-medium w-28 text-slate-600">{campo}</span>
+                        <div className="flex gap-2">
+                          <label className="flex items-center gap-1">
+                            X: <input 
+                              type="number" 
+                              value={coords[campo].x} 
+                              onChange={(e) => handleCoordChange(campo, 'x', e.target.value)}
+                              className="w-14 border border-slate-300 rounded px-1.5 py-0.5"
+                            />
+                          </label>
+                          <label className="flex items-center gap-1">
+                            Y: <input 
+                              type="number" 
+                              value={coords[campo].y} 
+                              onChange={(e) => handleCoordChange(campo, 'y', e.target.value)}
+                              className="w-14 border border-slate-300 rounded px-1.5 py-0.5"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={() => setCoords(initialCoords)}
+                      className="mt-3 text-xs text-red-600 hover:underline block"
+                    >
+                      Restaurar medidas originais da foto
+                    </button>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            {/* Prévia Visual da Folha */}
+            <div className="w-full lg:w-7/12 flex flex-col items-center">
+              <div className="no-print text-xs text-slate-500 mb-2">
+                Prévia exata da folha (190 mm × 97 mm). Apenas os textos pretos serão impressos.
+              </div>
+
+              <div 
+                className={`print-area relative rounded-sm shadow-md transition-all ${
+                  mostrarGuia ? 'bg-[#ffe93b] guia-fundo border border-yellow-400' : 'bg-white border border-dashed border-slate-300'
+                }`}
+                style={{ width: '190mm', height: '97mm', minWidth: '190mm', minHeight: '97mm' }}
+              >
+                {/* Linhas de Gabarito simuladas na tela */}
+                {mostrarGuia && (
+                  <div className="no-print absolute inset-0 pointer-events-none opacity-25 p-3 text-[9px] font-mono select-none">
+                    <div className="border border-black h-full w-full rounded p-2 flex flex-col justify-between">
+                      <div className="flex justify-between">
+                        <span>NOTIFICAÇÃO DA RECEITA (A)</span>
+                        <div className="w-24 text-center border-l border-black pl-2">ESPECIALIDADE FARMACÊUTICA</div>
+                      </div>
+                      <div className="text-center font-bold">ESPAÇO ASSINATURA</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Campos posicionados milimetricamente */}
+                <div 
+                  className="absolute font-sans font-semibold text-slate-900 text-[13px] leading-tight"
+                  style={{ left: `${coords.dia.x}mm`, top: `${coords.dia.y}mm` }}
+                >
+                  {dados.dia}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-semibold text-slate-900 text-[13px] leading-tight"
+                  style={{ left: `${coords.mes.x}mm`, top: `${coords.mes.y}mm` }}
+                >
+                  {dados.mes}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-semibold text-slate-900 text-[13px] leading-tight"
+                  style={{ left: `${coords.ano.x}mm`, top: `${coords.ano.y}mm` }}
+                >
+                  {dados.ano}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-bold text-slate-900 text-[13px] leading-tight max-w-[55mm] truncate"
+                  style={{ left: `${coords.paciente.x}mm`, top: `${coords.paciente.y}mm` }}
+                >
+                  {dados.paciente}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-medium text-slate-900 text-[11px] leading-tight max-w-[55mm] truncate"
+                  style={{ left: `${coords.endereco.x}mm`, top: `${coords.endereco.y}mm` }}
+                >
+                  {dados.endereco}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-bold text-slate-900 text-[13px] leading-tight max-w-[45mm]"
+                  style={{ left: `${coords.medicamento.x}mm`, top: `${coords.medicamento.y}mm` }}
+                >
+                  {dados.medicamento}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-medium text-slate-900 text-[12px] leading-tight max-w-[45mm]"
+                  style={{ left: `${coords.quantidade.x}mm`, top: `${coords.quantidade.y}mm` }}
+                >
+                  {dados.quantidade}
+                </div>
+
+                <div 
+                  className="absolute font-sans font-medium text-slate-900 text-[11px] leading-tight max-w-[48mm]"
+                  style={{ left: `${coords.posologia.x}mm`, top: `${coords.posologia.y}mm` }}
+                >
+                  {dados.posologia}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
